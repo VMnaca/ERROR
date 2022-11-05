@@ -1,0 +1,12 @@
+#!/bin/bash
+
+count=0
+loc="recordings/test"
+t=".wav"
+
+
+while true
+do
+        arecord -f S16_LE -d 1 -r 16000 --device="hw:1,0" $loc$count$t
+	((count++))
+done
