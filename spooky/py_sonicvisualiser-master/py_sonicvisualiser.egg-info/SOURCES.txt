@@ -1,0 +1,17 @@
+AUTHORS.md
+LICENSE
+MANIFEST.in
+README.md
+setup.cfg
+setup.py
+versioneer.py
+py_sonicvisualiser/SVContentHandler.py
+py_sonicvisualiser/SVDataset.py
+py_sonicvisualiser/SVEnv.py
+py_sonicvisualiser/__init__.py
+py_sonicvisualiser/_version.py
+py_sonicvisualiser.egg-info/PKG-INFO
+py_sonicvisualiser.egg-info/SOURCES.txt
+py_sonicvisualiser.egg-info/dependency_links.txt
+py_sonicvisualiser.egg-info/requires.txt
+py_sonicvisualiser.egg-info/top_level.txt

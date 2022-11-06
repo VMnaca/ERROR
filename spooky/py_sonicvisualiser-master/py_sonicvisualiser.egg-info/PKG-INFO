@@ -1,0 +1,50 @@
+Metadata-Version: 2.1
+Name: py-sonicvisualiser
+Version: 0.3
+Summary: manipulating sonic-visualiser environment files
+Home-page: https://github.com/DavidDoukhan/py_sonicvisualiser
+Author: David Doukhan
+Author-email: david.doukhan@gmail.com
+License: Gnu Public License V2
+Keywords: audio,analysis,features,visualization,plot,annotation,sonicvisualiser,conversion,format
+Platform: OS Independent
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: GNU General Public License v2 (GPLv2)
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Multimedia :: Sound/Audio
+Classifier: Topic :: Multimedia :: Sound/Audio :: Analysis
+Classifier: Topic :: Multimedia :: Sound/Audio :: Editors
+Classifier: Topic :: Multimedia :: Sound/Audio :: Speech
+Classifier: Topic :: Multimedia :: Sound/Audio :: Conversion
+Classifier: Topic :: Scientific/Engineering :: Information Analysis
+Classifier: Topic :: Scientific/Engineering :: Visualization
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Text Processing :: Markup
+License-File: LICENSE
+License-File: AUTHORS.md
+
+py_sonicvisualiser
+==================
+
+py_sonicvisualiser is a framework for manipulating environment files
+to be used with sonic visualiser, and application for viewing and analysing the contents of music audio files http://www.sonicvisualiser.org/
+
+This module supports the generation of sonic visualiser environment files (export) and their parsing (import), allowing to manipulate sonic visualiser datasets and python iterable structures.
+
+Feel free to contribute if you like this project!
+
+Usefull Links
+=============
+
+Latest source files: https://github.com/DavidDoukhan/py_sonicvisualiser
+
+Package: https://pypi.python.org/pypi/py_sonicvisualiser
+
+Documentation: http://pythonhosted.org/py_sonicvisualiser
+
+
+
+
