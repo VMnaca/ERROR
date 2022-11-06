@@ -359,6 +359,8 @@ void Transmitter::TransmitViaDma(WaveReader &reader, ClockOutput &output, unsign
         dmaCb[cbOffset].stride = 0;
         dmaCb[cbOffset].nextCbAddress = allocated.GetPhysicalAddress((i < bufferSize - 1) ? &dmaCb[cbOffset + 1] : dmaCb);
         cbOffset++;
+
+        std::cout << *pwmFifoData << std::endl;
     }
     *pwmFifoData = 0x00000000;
 
