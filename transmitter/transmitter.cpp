@@ -282,12 +282,11 @@ Transmitter::~Transmitter() {
     }
 }
 
-void Transmitter::Transmit(WaveReader &reader, float frequency, float bandwidth, bool preserveCarrier)
+void Transmitter::Transmit(Reader &reader, float frequency, float bandwidth, bool preserveCarrier)
 {
     stop = false;
 
-    WaveHeader header = reader.GetHeader();
-    unsigned bufferSize = static_cast<unsigned>(header.sampleRate);
+    unsigned bufferSize = static_cast<unsigned>(reader.GetSampleRate());
 
     unsigned clockDivisor = static_cast<unsigned>(round(Peripherals::GetClockFrequency() * (0x01 << 12) / frequency));
     unsigned divisorRange = clockDivisor - static_cast<unsigned>(round(Peripherals::GetClockFrequency() * (0x01 << 12) / (frequency + 0.0005f * bandwidth)));
@@ -302,7 +301,7 @@ void Transmitter::Transmit(WaveReader &reader, float frequency, float bandwidth,
         }
     };
     try {
-        TransmitViaDma(reader, *output, header.sampleRate, bufferSize, clockDivisor, divisorRange);
+        TransmitViaDma(reader, *output, reader.GetSampleRate(), bufferSize, clockDivisor, divisorRange);
     } catch (...) {
         finally();
         throw;
@@ -315,18 +314,18 @@ void Transmitter::Stop()
     stop = true;
 }
 
-void Transmitter::TransmitViaDma(WaveReader &reader, ClockOutput &output, unsigned sampleRate, unsigned bufferSize, unsigned clockDivisor, unsigned divisorRange)
+void Transmitter::TransmitViaDma(Reader &reader, ClockOutput &output, unsigned sampleRate, unsigned bufferSize, unsigned clockDivisor, unsigned divisorRange)
 {
     AllocatedMemory allocated(sizeof(uint32_t) * bufferSize + sizeof(DMAControllBlock) * (2 * bufferSize) + sizeof(uint32_t));
 
-    std::vector<Sample> samples = reader.GetSamples(bufferSize, stop);
-    if (samples.empty()) {
+    std::vector<Sample> data = reader.GetData(bufferSize, stop);
+    if (data.empty()) {
         return;
     }
 
     bool eof = false;
-    if (samples.size() < bufferSize) {
-        bufferSize = samples.size();
+    if (data.size() < bufferSize) {
+        bufferSize = data.size();
         eof = true;
     }
 
@@ -339,10 +338,7 @@ void Transmitter::TransmitViaDma(WaveReader &reader, ClockOutput &output, unsign
     volatile uint32_t *clkDiv = reinterpret_cast<uint32_t *>(reinterpret_cast<uintptr_t>(dmaCb) + 2 * sizeof(DMAControllBlock) * bufferSize);
     volatile uint32_t *pwmFifoData = reinterpret_cast<uint32_t *>(reinterpret_cast<uintptr_t>(clkDiv) + sizeof(uint32_t) * bufferSize);
     for (unsigned i = 0; i < bufferSize; i++) {
-
-        // *pwmFifoData = i;
-
-        float value = samples[i].GetMonoValue();
+        float value = data[i].GetMonoValue();
         clkDiv[i] = CLK_PASSWORD | (clockDivisor - static_cast<int32_t>(round(value * divisorRange)));
         dmaCb[cbOffset].transferInfo = DMA_TI_NO_WIDE_BURST | DMA_TI_WAIT_RESP;;
         dmaCb[cbOffset].srcAddress = allocated.GetPhysicalAddress(&clkDiv[i]);
@@ -352,6 +348,8 @@ void Transmitter::TransmitViaDma(WaveReader &reader, ClockOutput &output, unsign
         dmaCb[cbOffset].nextCbAddress = allocated.GetPhysicalAddress(&dmaCb[cbOffset + 1]);
         cbOffset++;
 
+        std::cout << value << std::endl;
+
         dmaCb[cbOffset].transferInfo = DMA_TI_NO_WIDE_BURST | DMA_TI_PERMAP(0x5) | DMA_TI_DEST_DREQ | DMA_TI_WAIT_RESP;
         dmaCb[cbOffset].srcAddress = allocated.GetPhysicalAddress(pwmFifoData);
         dmaCb[cbOffset].dstAddress = peripherals.GetPhysicalAddress(&pwm.GetFifoIn());
@@ -360,7 +358,7 @@ void Transmitter::TransmitViaDma(WaveReader &reader, ClockOutput &output, unsign
         dmaCb[cbOffset].nextCbAddress = allocated.GetPhysicalAddress((i < bufferSize - 1) ? &dmaCb[cbOffset + 1] : dmaCb);
         cbOffset++;
 
-        std::cout << *pwmFifoData << std::endl;
+
     }
     *pwmFifoData = 0x00000000;
 
@@ -373,19 +371,20 @@ void Transmitter::TransmitViaDma(WaveReader &reader, ClockOutput &output, unsign
         while (dma.GetControllBlockAddress() != 0x00000000) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        samples.clear();
+        data.clear();
         stop = true;
     };
     try {
         while (!eof && !stop) {
-            samples = reader.GetSamples(bufferSize, stop);
-            if (!samples.size()) {
+            data = reader.GetData(bufferSize, stop);
+            if (!data.size()) {
                 break;
             }
             cbOffset = 0;
-            eof = samples.size() < bufferSize;
-            for (std::size_t i = 0; i < samples.size(); i++) {
-                float value = samples[i].GetMonoValue();
+            eof = data.size() < bufferSize;
+            for (std::size_t i = 0; i < data.size(); i++) {
+                float value = data[i].GetMonoValue();
+                std::cout << value << std::endl;
                 while (i == ((dma.GetControllBlockAddress() - allocated.GetPhysicalAddress(dmaCb)) / (2 * sizeof(DMAControllBlock)))) {
                     std::this_thread::sleep_for(std::chrono::microseconds(BUFFER_TIME / 10));
                 }

@@ -51,10 +51,11 @@ void sigIntHandler(int sigNum)
 int main(int argc, char** argv)
 {
     float frequency = 100.f, bandwidth = 200.f;
-    bool showUsage = true, loop = false;
+    int sampleRate = 60;
+    bool showUsage = true, loop = false, wav = false;
     int opt, filesOffset;
 
-    while ((opt = getopt(argc, argv, "rf:d:b:v")) != -1) {
+    while ((opt = getopt(argc, argv, "rf:d:b:ws:")) != -1) {
         switch (opt) {
             case 'r':
                 loop = true;
@@ -64,6 +65,12 @@ int main(int argc, char** argv)
                 break;
             case 'b':
                 bandwidth = std::stof(optarg);
+                break;
+            case 'w':
+                wav = true;
+                break;
+            case 's':
+                sampleRate = std::stof(optarg);
                 break;
         }
     }
@@ -90,13 +97,20 @@ int main(int argc, char** argv)
             if ((optind == argc) && loop) {
                 optind = filesOffset;
             }
-            WaveReader reader(filename != "-" ? filename : std::string(), stop);
-            WaveHeader header = reader.GetHeader();
-            std::cout << "Playing: " << reader.GetFilename() << ", "
-                << header.sampleRate << " Hz, "
-                << header.bitsPerSample << " bits, "
-                << ((header.channels > 0x01) ? "stereo" : "mono") << std::endl;
-            transmitter->Transmit(reader, frequency, bandwidth, optind < argc);
+            
+            
+
+            if (wav) {
+                WaveReader wr(filename != "-" ? filename : std::string(), stop);
+                transmitter->Transmit(wr, frequency, bandwidth, optind < argc);
+                wr.GetDetails();
+            }
+            else {
+                FileReader fr(filename, sampleRate);
+                transmitter->Transmit(fr, frequency, bandwidth, optind < argc);
+                fr.GetDetails();
+            }
+            
         } while (!stop && (optind < argc));
     } catch (std::exception &catched) {
         std::cout << "Error: " << catched.what() << std::endl;

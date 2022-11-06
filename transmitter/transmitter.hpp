@@ -33,7 +33,8 @@
 
 #pragma once
 
-#include "wave_reader.hpp"
+// #include "wave_reader.hpp"
+#include "file_reader.hpp"
 #include <mutex>
 
 class ClockOutput;
@@ -43,13 +44,10 @@ class Transmitter
     public:
         Transmitter();
         virtual ~Transmitter();
-        Transmitter(const Transmitter &) = delete;
-        Transmitter(Transmitter &&) = delete;
-        Transmitter &operator=(const Transmitter &) = delete;
-        void Transmit(WaveReader &reader, float frequency, float bandwidth, bool preserveCarrier);
+        void Transmit(Reader &reader, float frequency, float bandwidth, bool preserveCarrier);
         void Stop();
     private:
-        void TransmitViaDma(WaveReader &reader, ClockOutput &output, unsigned sampleRate, unsigned bufferSize, unsigned clockDivisor, unsigned divisorRange);
+        void TransmitViaDma(Reader &reader, ClockOutput &output, unsigned sampleRate, unsigned bufferSize, unsigned clockDivisor, unsigned divisorRange);
 
         ClockOutput *output;
         std::mutex access;

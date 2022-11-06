@@ -36,6 +36,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "reader.hpp"
 
 #define WAVE_FORMAT_PCM 0x0001
 
@@ -56,27 +57,32 @@ struct WaveHeader
     uint32_t subchunk2Size;
 };
 
-class Sample
-{
-public:
-    Sample(uint8_t *data, unsigned channels, unsigned bitsPerChannel);
-    float GetMonoValue() const;
-protected:
-    float value;
-};
 
-class WaveReader
+
+class WaveReader : public Reader
 {
     public:
         WaveReader(const std::string &filename, bool &stop);
         virtual ~WaveReader();
-        WaveReader(const WaveReader &) = delete;
-        WaveReader(WaveReader &&) = delete;
-        WaveReader &operator=(const WaveReader &) = delete;
         std::string GetFilename() const;
         const WaveHeader &GetHeader() const;
         std::vector<Sample> GetSamples(unsigned quantity, bool &stop);
         bool SetSampleOffset(unsigned offset);
+
+
+        std::vector<Sample> GetData (unsigned quantity, bool &stop) {
+            return this->GetSamples(quantity, stop);
+        }
+        std::string GetDetails () {
+            WaveHeader header = this->GetHeader();
+            return std::string("Playing: " + this->GetFilename() + ", " \
+                + std::to_string(header.sampleRate) + " Hz, "           \
+                + std::to_string(header.bitsPerSample) + " bits, "      \
+                + ((header.channels > 0x01) ? "stereo" : "mono"));
+        }
+        int GetSampleRate () {
+            return this->GetHeader().sampleRate;
+        }
     private:
         std::vector<uint8_t> ReadData(unsigned bytesToRead, bool headerBytes, bool &stop);
 
