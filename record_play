@@ -1,0 +1,17 @@
+#!/bin/bash
+
+count=0
+oldcount=-1
+loc="recordings/test"
+t=".wav"
+
+
+while (( $count < 15 ))
+do
+        if (( $oldcount != -1 )); then
+                ./fm_transmitter -f 95 -r $loc$oldcount$t
+        fi
+        arecord -f S16_LE -d 1 -r 16000 --device="hw:1,0" $loc$count$t
+	((count++))
+        oldcount=$count
+done
